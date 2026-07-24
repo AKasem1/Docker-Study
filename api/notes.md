@@ -41,7 +41,7 @@
 - `docker run`: Creates a **new** container from an image and starts it. It essentially combines `docker create` and `docker start`.
 - `docker start`: Starts an **existing** but stopped container. It does not create a new container.
 
-## For listing current running processes
+## For listing current running processes and containers
 
 ```bash
 # list all containers:
@@ -51,6 +51,53 @@
 # docker ps -a
 
 ```
+
+## Listing all images
+
+```bash
+# list all images:
+# docker images
+
+# list only images with name "node" (partial match):
+# docker images node
+
+# list all images (long format - shows more details):
+# docker images -l
+
+```
+
+## Managing Containers and Images
+
+```bash
+# Remove an image:
+# docker image rm <image_name_or_id>
+# example: docker image rm myapp3
+
+# Force remove an image:
+# docker image rm <image_name_or_id> -f
+# example: docker image rm myapp4 -f
+
+# Remove a single container:
+# docker container rm <container_name_or_id>
+# example: docker container rm myapp4_c
+
+# Remove multiple containers at once:
+# docker container rm <container1> <container2> ...
+# example: docker container rm myapp_c1 myapp_c2
+
+# Remove all unused containers, networks, images, and build cache:
+# docker system prune -a
+
+# Build an image with a specific tag:
+# docker build -t <image_name:tag> <path>
+# example: docker build -t myapp4:v1 .
+
+# Run a container from a tagged image with name and port mapping:
+# docker run --name <container_name> -p <host_port>:<container_port> <image_name:tag>
+# example: docker run --name myapp_c -p 4000:4000 myapp4:v1
+
+```
+
 ## Stop and remove a container
 
 ```bash

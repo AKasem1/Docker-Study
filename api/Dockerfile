@@ -1,6 +1,9 @@
 # initial layer
 FROM node:17-alpine
 
+# install nodemon globally
+RUN npm install -g nodemon
+
 # set the work directory for the image
 WORKDIR /app
 
@@ -22,4 +25,4 @@ COPY . .
 EXPOSE 4000
 
 # run the application when container starts
-CMD ["node", "app.js"]
+CMD ["npm", "run", "dev"]

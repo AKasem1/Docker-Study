@@ -35,9 +35,11 @@ can hit it directly.
 
 ```dockerfile
 FROM node:17-alpine
+RUN npm install -g nodemon
 ```
 Base layer. `alpine` is a minimal Linux distro — much smaller image than the default
-Debian-based `node:17`.
+Debian-based `node:17`. `nodemon` is installed globally so the container can run the app
+in watch mode.
 
 ```dockerfile
 WORKDIR /app
@@ -66,10 +68,14 @@ Documentation + a hint to Docker Desktop, which uses it to pre-fill port mapping
 **not** publish the port by itself — `docker run -p` is what actually maps it.
 
 ```dockerfile
-CMD ["node", "app.js"]
+CMD ["npm", "run", "dev"]
 ```
 The process that runs when a container starts. Exec form (JSON array) so the process gets
 PID 1 and receives signals properly, instead of being wrapped in a shell.
+
+`npm run dev` maps to `nodemon -L app.js`. The `-L` flag turns on legacy polling — inside
+a container, filesystem events from a bind-mounted host directory don't reliably reach
+nodemon, so it has to poll for changes instead.
 
 ---
 
@@ -130,8 +136,16 @@ leaking in.
 docker images                  # list images
 docker images node             # filter by name (partial match)
 docker build -t myapp .        # build from Dockerfile in current dir
-docker rmi myapp               # remove an image
+docker build -t myapp:v1 .     # build with an explicit tag
+docker image rm myapp          # remove an image
+docker image rm myapp -f       # force remove (even if a container used it)
+docker system prune -a         # remove all unused images, containers, networks, cache
 ```
+
+### Tags
+`myapp:v1` is `name:tag`. Omitting the tag means `:latest` — which is just a default
+label, not a promise that it's the newest build. Tagging explicitly makes it possible to
+keep multiple versions of an image side by side.
 
 ### Containers
 ```bash
