@@ -1,0 +1,25 @@
+# version of docker compose file specification
+version: "3.8"
+
+
+# every service runs on an isolated container
+services:
+  api:
+    build: ./api
+    container_name: api_c
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./api:/app
+      - /app/node_modules
+
+  blog:
+    build: ./myblog
+    container_name: myblog_c
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./myblog:/app
+      - /app/node_modules
+    stdin_open: true # to keep the container running in interactive mode
+    tty: true # to keep the container running in foreground mode

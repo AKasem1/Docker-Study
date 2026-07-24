@@ -1,8 +1,9 @@
 # Docker Study
 
-Personal study repo for learning Docker, built around a small Node/Express API that gets
-containerized step by step. The app itself is deliberately trivial — the point is the
-Dockerfile, the image/container lifecycle, and the CLI.
+Personal study repo for learning Docker, built around a small Node/Express API and a React
+front-end that get containerized step by step, then wired together with Docker Compose.
+The apps themselves are deliberately trivial — the point is the Dockerfile, the
+image/container lifecycle, volumes, and the CLI.
 
 ---
 
@@ -10,12 +11,18 @@ Dockerfile, the image/container lifecycle, and the CLI.
 
 ```
 docker-crash-course/
-└── api/
-    ├── app.js            # Express API, listens on port 4000
-    ├── package.json      # express + cors, `npm run dev` uses nodemon
-    ├── Dockerfile        # the image definition (annotated)
-    ├── .dockerignore     # keeps node_modules out of the build context
-    └── notes.md          # running command notes taken while studying
+├── docker-compose.yml    # runs both services together
+├── api/                  # Express API, port 4000
+│   ├── app.js
+│   ├── package.json      # express + cors, `npm run dev` uses nodemon
+│   ├── Dockerfile        # the image definition (annotated)
+│   ├── .dockerignore     # keeps node_modules out of the build context
+│   └── notes.md          # running command notes taken while studying
+└── myblog/               # React front-end, port 3000
+    ├── src/ public/
+    ├── package.json
+    ├── Dockerfile
+    └── .dockerignore
 ```
 
 ## The app
@@ -98,6 +105,50 @@ Then `docker stop myapp_c1` to stop, `docker start myapp_c1` to bring it back.
 
 ---
 
+## Running both services with Compose
+
+Doing this by hand means two builds, two `docker run` invocations, and remembering every
+flag. `docker-compose.yml` declares it once:
+
+```bash
+docker compose up -d      # build if needed, create, and start everything
+docker compose down       # stop and remove containers + networks
+```
+
+Each service maps to one container. `api` is published on **4000**, `myblog` on **3000**,
+and Compose puts them on a shared network so they can reach each other by service name.
+
+### Volumes — why the app reloads without a rebuild
+
+```yaml
+volumes:
+  - ./api:/app
+  - /app/node_modules
+```
+
+The first line is a **bind mount**: the host's `./api` directory is mounted over `/app`
+inside the container, so editing a file on your machine changes it in the container
+immediately. That's what makes `nodemon` useful — it sees the change and restarts.
+
+The second line is the important trick. The bind mount hides *everything* that was at
+`/app`, including the `node_modules` the image installed at build time. Listing
+`/app/node_modules` on its own creates an **anonymous volume** at that path, which takes
+priority over the bind mount and preserves the container's own dependencies. Without it,
+the container would look for modules in the host's `node_modules` — often missing, or
+built for the wrong platform.
+
+### `stdin_open` and `tty`
+
+```yaml
+stdin_open: true
+tty: true
+```
+
+The React dev server exits immediately if it isn't attached to an interactive terminal.
+These two keep STDIN open and allocate a TTY — the Compose equivalent of `docker run -it`.
+
+---
+
 ## Concepts covered
 
 ### Images vs. containers
@@ -170,6 +221,14 @@ docker exec -it <name|id> sh   # shell into a running container
 | `--rm` | auto-remove the container when it exits |
 | `-e KEY=value` | set an environment variable |
 | `-v HOST:CONTAINER` | mount a volume / bind mount |
+
+### Compose
+```bash
+docker compose up                  # build, create, start, attach
+docker compose up -d               # same, detached
+docker compose down                # stop + remove containers and networks
+docker compose down --rmi all -v   # also remove built images and volumes
+```
 
 ---
 

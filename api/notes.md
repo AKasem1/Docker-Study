@@ -98,6 +98,23 @@
 
 ```
 
+## Running Containers with Nodemon & Auto-Removal (--rm)
+
+```bash
+# Run container in detached (background) mode:
+# docker run --name myapp_c_nodemon -p 4000:4000 -d myapp:nodemon
+
+# Run container in background and automatically remove it (--rm) when stopped:
+# docker run --name myapp_c_nodemon -p 4000:4000 -d --rm myapp:nodemon
+
+# Stop the running container (auto-removed if --rm was passed):
+# docker stop myapp_c_nodemon
+
+# Run in interactive/foreground mode to view live logs (e.g., nodemon console output):
+# Automatically removes the container when stopped with Ctrl+C (^C):
+# docker run --name myapp_c_nodemon -p 4000:4000 --rm myapp:nodemon
+```
+
 ## Stop and remove a container
 
 ```bash
@@ -111,3 +128,42 @@
 # docker rm -f <container_id_or_name>
 
 ```
+
+
+
+### Key Takeaways:
+- **`-d`**: Runs the container in the background (detached mode) and outputs the container ID.
+- **`--rm`**: Tells Docker to automatically remove the container when it exits or is stopped.
+- **Foreground Mode (without `-d`)**: Streams container output (e.g. `nodemon` logs) directly to your terminal. Pressing `Ctrl+C` (`^C`) sends an interrupt signal to stop the container (which auto-deletes if `--rm` is used).
+
+## Docker Compose Commands
+
+```bash
+# Build, (re)create, start, and attach to containers for all services defined in docker-compose.yml:
+# docker compose up
+
+# Run services in detached mode (background):
+# docker compose up -d
+
+# Stop and remove containers and networks created by 'docker compose up':
+# docker compose down
+
+# Stop containers and remove containers, networks, ALL images built/used by services, and volumes:
+# docker compose down --rmi all -v
+```
+
+### Example Usage:
+```bash
+# Start your project in detached mode:
+docker compose up -d
+
+# Stop and clean up everything (including images and volumes):
+docker compose down --rmi all -v
+```
+
+### Options Breakdown for `docker compose down`:
+- `--rmi all`: Removes **all** images built or used by services in the compose file.
+- `-v` (or `--volumes`): Removes **volumes** (both named and anonymous volumes attached to containers).
+
+> [!NOTE]
+> **Obsolete `version` attribute**: In Docker Compose V2 specification, the top-level `version: "3.8"` property is obsolete and can be safely removed from `docker-compose.yml`.
